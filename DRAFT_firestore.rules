@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- PRIMITIVES & HELPERS ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- VALIDATION BLUEPRINTS ---
+
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'email', 'createdAt', 'updatedAt']) &&
+             data.userId == request.auth.uid &&
+             data.email is string && data.email.size() <= 200 &&
+             data.createdAt == request.time &&
+             data.updatedAt == request.time &&
+             // System fields defaults on create
+             data.isPro == false &&
+             data.downloadCredits == 0;
+    }
+
+    function isValidResume(data) {
+      return data.keys().hasAll(['userId', 'fullName', 'createdAt', 'updatedAt']) &&
+             data.userId == request.auth.uid &&
+             data.fullName is string && data.fullName.size() <= 100 &&
+             data.jobTitle is string && data.jobTitle.size() <= 100 &&
+             data.summary is string && data.summary.size() <= 2000 &&
+             data.experience is list && data.experience.size() <= 20 &&
+             data.skills is list && data.skills.size() <= 50 &&
+             data.location is string && data.location.size() <= 100 &&
+             data.createdAt == request.time &&
+             data.updatedAt == request.time;
+    }
+
+    // --- COLLECTION RULES ---
+
+    // 1. User Profiles
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfile(incoming());
+      
+      // Tiered Identity: Users can only update non-billing fields
+      allow update: if isOwner(userId) && 
+                      incoming().updatedAt == request.time &&
+                      incoming().userId == existing().userId &&
+                      incoming().createdAt == existing().createdAt &&
+                      incoming().isPro == existing().isPro &&
+                      incoming().downloadCredits == existing().downloadCredits &&
+                      incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'updatedAt']);
+    }
+
+    // 2. Resumes
+    match /resumes/{resumeId} {
+      // Secure List Query: Rule itself enforces the filter
+      allow list: if isEmailVerified() && resource.data.userId == request.auth.uid;
+      allow get: if isEmailVerified() && resource.data.userId == request.auth.uid;
+      
+      allow create: if isEmailVerified() && 
+                      isValidId(resumeId) && 
+                      isValidResume(incoming());
+
+      allow update: if isEmailVerified() && 
+                      isOwner(existing().userId) &&
+                      incoming().userId == existing().userId &&
+                      incoming().createdAt == existing().createdAt &&
+                      incoming().updatedAt == request.time &&
+                      (
+                        // Action: Tailoring
+                        (incoming().diff(existing()).affectedKeys().hasAll(['isTailored', 'targetJobDescription', 'updatedAt']) &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['isTailored', 'targetJobDescription', 'updatedAt', 'fullName', 'summary', 'experience', 'skills', 'education']))
+                      );
+
+      allow delete: if isEmailVerified() && isOwner(existing().userId);
+    }
+  }
+}

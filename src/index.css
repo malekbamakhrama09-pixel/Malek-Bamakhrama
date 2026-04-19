@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", sans-serif;
+  
+  --color-primary-blue: #2563EB;
+  --color-accent-green: #10B981;
+  --color-dark-gray: #111827;
+  --color-light-gray: #F9FAFB;
+  --color-border-standard: #E5E7EB;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-dark-gray font-sans antialiased;
+  }
+
+  h1 {
+    @apply text-[32px] md:text-[40px] font-bold tracking-tight text-dark-gray;
+  }
+
+  h2 {
+    @apply text-[20px] md:text-[24px] font-bold tracking-tight text-dark-gray;
+  }
+
+  h3 {
+    @apply text-[18px] font-semibold text-dark-gray;
+  }
+}
+
+.standard-card {
+  @apply bg-white rounded-[12px] border border-border-standard shadow-sm p-[20px] transition-shadow duration-200;
+}
+
+.standard-card-hover {
+  @apply hover:shadow-md;
+}
+
+.btn-primary {
+  @apply bg-primary-blue text-white font-bold rounded-[8px] px-6 py-3 hover:bg-[#1d4ed8] transition-colors shadow-sm inline-flex items-center justify-center;
+}
+
+.btn-secondary {
+  @apply bg-white border border-[#D1D5DB] text-[#4B5563] font-semibold rounded-[8px] px-6 py-3 hover:bg-slate-50 transition-colors inline-flex items-center justify-center;
+}
+
+.input-field {
+  @apply w-full px-4 py-3 bg-white border border-[#D1D5DB] rounded-[8px] outline-none focus:border-primary-blue focus:ring-1 focus:ring-primary-blue transition-all text-dark-gray text-[14px] md:text-[16px];
+}
+
+.label-standard {
+  @apply block text-sm font-semibold text-[#374151] mb-1.5;
+}
+
+.section-spacing {
+  @apply py-[60px] md:py-[100px];
+}
+
+.cv-preview-container {
+  @apply bg-white p-12 shadow-sm border border-slate-100 rounded-[8px] min-h-[1056px] text-dark-gray;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+}
+

@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Stores user account status, subscription details, and download credits.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "isPro": { "type": "boolean", "default": false },
+        "downloadCredits": { "type": "number", "default": 0 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email"]
+    },
+    "Resume": {
+      "title": "Resume",
+      "description": "Stores generated CV content for users.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "summary": { "type": "string" },
+        "experience": { 
+          "type": "array",
+          "items": { "type": "object" }
+        },
+        "skills": { "type": "array", "items": { "type": "string" } },
+        "education": { 
+          "type": "array", 
+          "items": { "type": "object" }
+        },
+        "location": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "isTailored": { "type": "boolean", "default": false },
+        "targetJobDescription": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "fullName"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document keyed by Auth UID."
+    },
+    "/resumes/{resumeId}": {
+      "schema": "Resume",
+      "description": "Collection of resumes created by users."
+    }
+  }
+}
